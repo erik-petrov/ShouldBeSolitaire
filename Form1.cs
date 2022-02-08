@@ -14,13 +14,18 @@ namespace ShouldBeSolitaire
 {
 	public partial class Form1 : Form
 	{
+        Image chosenImage;
 		public Form1()
 		{
-			//InitializeComponent();
-			//just make this into a puzzle
+            //InitializeComponent();
+            //just make this into a puzzle
 
-		}
-        public static Bitmap ResizeImage(Image image, int width, int height)
+            MainMenu mainMenu = new MainMenu();
+            MenuItem File = mainMenu.MenuItems.Add("&File");
+            File.MenuItems.Add(new MenuItem("&Open", new EventHandler(this.LoadImage), Shortcut.CtrlS));
+            this.Menu = mainMenu;
+        }
+        private Bitmap ResizeImage(Image image, int width, int height)
         {
             var destRect = new Rectangle(0, 0, width, height);
             var destImage = new Bitmap(width, height);
@@ -43,6 +48,20 @@ namespace ShouldBeSolitaire
             }
 
             return destImage;
+        }
+        private void LoadImage(object sender, EventArgs e)
+		{
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+            openFileDialog1.InitialDirectory = "c:\\";
+            openFileDialog1.Filter = "Image files (*.png, *.gif, *.jpg)|*.png, *.gif, *.jpg";
+            openFileDialog1.FilterIndex = 0;
+            openFileDialog1.RestoreDirectory = true;
+            openFileDialog1.Multiselect = false;
+
+            if(openFileDialog1.ShowDialog() == DialogResult.OK)
+			{
+                chosenImage = new Bitmap(openFileDialog1.FileName);
+            }
         }
     }
 }
