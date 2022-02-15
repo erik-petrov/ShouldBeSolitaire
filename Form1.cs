@@ -15,19 +15,23 @@ namespace ShouldBeSolitaire
 	public partial class Form1 : Form
 	{
         Image chosenImage;
+		PictureBox[] pbArr;
+		int draggedFrom;
+		string ifWin = "";
 		readonly TableLayoutPanel tlp = new TableLayoutPanel();
 		readonly TableLayoutPanel tlp2 = new TableLayoutPanel();
 		int w, h;
 		public Form1(int x, int y, Image img)
 		{
 			InitializeComponent();
+			this.AllowDrop = true;
+			this.DragDrop += Puzzle_DragDropP;
+			pbArr = new PictureBox[x * y];
 			//just make this into a puzzle
 			//chosenImage = ResizeImage(img, 900, 900);
 			chosenImage = img;
 			Image[] imageArr = SliceImage(chosenImage, x, y);
 			tlp = InitializeTLP(tlp, x, y);
-			groupBox1.AllowDrop = true;
-			tlp.AllowDrop = true;
 			int l = 0;
 			for (int i = 0; i < x; i++)
 			{
@@ -39,10 +43,14 @@ namespace ShouldBeSolitaire
 						Name = x+";"+y,
 						BorderStyle = BorderStyle.FixedSingle,
 						Dock = DockStyle.Fill,
+						Tag = l,
 						SizeMode = PictureBoxSizeMode.StretchImage
 					};
+					pb.DragDrop += Puzzle_DragDropP;
+					pb.DragEnter += DragEnterP;
+					pb.MouseDown += MouseDownP;
 					pb.AllowDrop = true;
-					pb.DragDrop += DragDropP;
+					pbArr[l] = pb;
 					l++;
 					tlp.Controls.Add(pb, i, j);
 				}
@@ -65,7 +73,6 @@ namespace ShouldBeSolitaire
 					Dock = DockStyle.Fill,
 					SizeMode = PictureBoxSizeMode.StretchImage
 				};
-				pb.AllowDrop = true;
 				pb.MouseDown += MouseDownP;
 				pb.DragEnter += DragEnterP;
 				tlp2.Controls.Add(pb);
@@ -80,30 +87,6 @@ namespace ShouldBeSolitaire
 			groupBox3.Controls.Add(picture);
 			//this.Controls.Add(tlp);
 		}
-        /*private Bitmap ResizeImage(Image image, int width, int height)
-        {
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
-
-            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
-
-            using (var graphics = Graphics.FromImage(destImage))
-            {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
-                }
-            }
-
-            return destImage;
-        }*/
 		private TableLayoutPanel InitializeTLP(TableLayoutPanel tlp, int x, int y)
         {
 			tlp.ColumnCount = x;
@@ -156,30 +139,54 @@ namespace ShouldBeSolitaire
 		private static Image cropImage(Image img, Rectangle cropArea, string id)
 		{
 			Bitmap bmpImage = new Bitmap(img);
-			Bitmap bmpCrop = bmpImage.Clone(cropArea, System.Drawing.Imaging.PixelFormat.DontCare);
+			Bitmap bmpCrop = bmpImage.Clone(cropArea, PixelFormat.DontCare);
 			bmpCrop.Tag = id;
-			return (Image)(bmpCrop);
+			return bmpCrop;
 		}
 		void DragEnterP(object sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.Bitmap))
 				e.Effect = DragDropEffects.Move;
 		}
-		void DragDropP(object sender, DragEventArgs e)
+		void Puzzle_DragDropP(object sender, DragEventArgs e)
 		{
 			PictureBox pb = sender as PictureBox;
 			var bmp = (Bitmap)e.Data.GetData(DataFormats.Bitmap);
-			pb.Image = bmp;
+			if (pb.Image != null)
+			{
+				/*string[] coords = draggedFrom.Split(';');
+				int x = Int32.Parse(coords[0]);
+				int y = Int32.Parse(coords[1]);*/
+				//pbArr[(x * y)-1].Image = pb.Image;
+				pbArr[draggedFrom].Image = pb.Image;
+				pb.Image = bmp;
+			}
+			else
+			{
+				pb.Image = bmp;
+				pbArr[draggedFrom].Image = null;
+			}
 		}
 		private void MouseDownP(object sender, MouseEventArgs e)
 		{
 			PictureBox pb = sender as PictureBox;
+			bool amogus = int.TryParse(Convert.ToString(pb.Tag), out _);//if from puzzle to puzzle
+			if (pb.Tag != null && amogus) draggedFrom = (int)pb.Tag;
 			var img = pb.Image;
 			if (img == null) return;
+			if (ifWin == pb.Name) return;
 			if (DoDragDrop(img, DragDropEffects.Move) == DragDropEffects.Move)
 			{
-				pb.Image = null;
+				if (!amogus)
+				{
+					pb.Image = null;
+					ifWin = pb.Name;
+				}
 			}
+		}
+		private void CheckPuzzleCompletion(object sender, EventArgs e)
+		{
+
 		}
 	}
 }
