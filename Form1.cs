@@ -16,8 +16,8 @@ namespace ShouldBeSolitaire
 	{
         Image chosenImage;
 		PictureBox[] pbArr;
+		int[] winArr;
 		int draggedFrom;
-		string ifWin = "";
 		bool amogus;
 		readonly TableLayoutPanel tlp = new TableLayoutPanel();
 		readonly TableLayoutPanel tlp2 = new TableLayoutPanel();
@@ -28,6 +28,7 @@ namespace ShouldBeSolitaire
 			this.AllowDrop = true;
 			this.DragDrop += Puzzle_DragDropP;
 			pbArr = new PictureBox[x * y];
+			winArr = new int[x * y];
 			//just make this into a puzzle
 			//chosenImage = ResizeImage(img, 900, 900);
 			chosenImage = img;
@@ -41,7 +42,7 @@ namespace ShouldBeSolitaire
 					PictureBox pb = new PictureBox
 					{
 						//Image = imageArr[l],
-						Name = x+";"+y,
+						Name = i+";"+j,
 						BorderStyle = BorderStyle.FixedSingle,
 						Dock = DockStyle.Fill,
 						Tag = l,
@@ -52,6 +53,7 @@ namespace ShouldBeSolitaire
 					pb.MouseDown += MouseDownP;
 					pb.AllowDrop = true;
 					pbArr[l] = pb;
+					winArr[l] = l;
 					l++;
 					tlp.Controls.Add(pb, i, j);
 				}
@@ -88,7 +90,7 @@ namespace ShouldBeSolitaire
 			groupBox3.Controls.Add(picture);
 			//this.Controls.Add(tlp);
 		}
-		private TableLayoutPanel InitializeTLP(TableLayoutPanel tlp, int x, int y)
+        private TableLayoutPanel InitializeTLP(TableLayoutPanel tlp, int x, int y)
         {
 			tlp.ColumnCount = x;
 			tlp.RowCount = y;
@@ -114,8 +116,6 @@ namespace ShouldBeSolitaire
         {
 			int l = 0;
 			Graphics g = Graphics.FromImage(img);
-			Brush redBrush = new SolidBrush(Color.Red);
-			Pen pen = new Pen(redBrush, 3);
 			var imgarray = new Image[x*y];
 			for (int i = 0; i < x; i++)
 			{
@@ -167,6 +167,7 @@ namespace ShouldBeSolitaire
 				pb.Image = bmp;
 				if(amogus) pbArr[draggedFrom].Image = null;
 			}
+			if (bmp.Tag.ToString() == pb.Name) MakeUnavailable((int)pb.Tag, pb);
 		}
 		//TODO: make game finish
 		private void MouseDownP(object sender, MouseEventArgs e)
@@ -176,25 +177,64 @@ namespace ShouldBeSolitaire
 			if (pb.Tag != null && amogus) draggedFrom = (int)pb.Tag;
 			var img = pb.Image;
 			if (img == null) return;
-			Console.WriteLine(ifWin);
-			if (ifWin == pb.Name && !amogus)
+			if (amogus && CheckIfRight((int)pb.Tag))
 			{
-				//pb.AllowDrop = false;
-				//pb.MouseDown -= MouseDownP;
+                Console.WriteLine((int)pb.Tag);
 				return;
 			}
-			if (DoDragDrop(img, DragDropEffects.Move) == DragDropEffects.Move)
+			DoDragDrop(img, DragDropEffects.Move);
+			if (!amogus)
 			{
-				if (!amogus)
-				{
-					pb.Image = null;
-					ifWin = pb.Name;
-				}
+				pb.Image = null;
 			}
 		}
-		private void CheckPuzzleCompletion(object sender, EventArgs e)
+		private void MakeUnavailable(int id, PictureBox pb)
 		{
-
+			winArr[id] = 2281337;
+			pb.AllowDrop = false;
+			pb.MouseDown -= MouseDownP;
+			pb.DragEnter -= DragEnterP;
+			pb.DragDrop -= Puzzle_DragDropP;
+			pb.Image = DarkenImage((Bitmap)pb.Image);
+			Win();
+		}
+		private Bitmap DarkenImage(Bitmap bmp)
+        {
+			Rectangle r = new Rectangle(0, 0, bmp.Width, bmp.Height);
+			using (Graphics g = Graphics.FromImage(bmp))
+				using (Brush cloud_brush = new SolidBrush(Color.FromArgb(128, Color.Black)))
+					g.FillRectangle(cloud_brush, r);
+			return bmp;
+		}
+		private bool CheckIfRight(int tag)
+        {
+			if (tag == 2281337) return false;
+			return !winArr.Contains(tag);
+        }
+		private void Win()
+        {
+			bool won = true;
+			for (int i = 0; i < winArr.Length; i++)
+			{
+				if (winArr[i] != 2281337)
+				{
+					won = false;
+					break;
+				}
+			}
+			if (won)
+			{
+				DialogResult res = MessageBox.Show("You've won!\n Wanna choose another image?", "Winner", MessageBoxButtons.OKCancel);
+				if(res == DialogResult.OK)
+                {
+					StartForm strt = new StartForm();
+					strt.Show();
+					this.Dispose();
+					this.Close();
+                }
+                else
+					Application.Exit();
+			}
 		}
 	}
 }

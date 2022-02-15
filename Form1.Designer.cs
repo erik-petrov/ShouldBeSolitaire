@@ -40,7 +40,7 @@
             this.groupBox1.Size = new System.Drawing.Size(866, 635);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "groupBox1";
+            this.groupBox1.Text = "Puzzle";
             // 
             // groupBox2
             // 
@@ -49,7 +49,7 @@
             this.groupBox2.Size = new System.Drawing.Size(385, 303);
             this.groupBox2.TabIndex = 1;
             this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "groupBox2";
+            this.groupBox2.Text = "Pieces";
             // 
             // groupBox3
             // 
@@ -58,7 +58,7 @@
             this.groupBox3.Size = new System.Drawing.Size(385, 313);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "groupBox3";
+            this.groupBox3.Text = "Image";
             // 
             // Form1
             // 
