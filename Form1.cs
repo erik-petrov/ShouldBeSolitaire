@@ -18,6 +18,7 @@ namespace ShouldBeSolitaire
 		PictureBox[] pbArr;
 		int draggedFrom;
 		string ifWin = "";
+		bool amogus;
 		readonly TableLayoutPanel tlp = new TableLayoutPanel();
 		readonly TableLayoutPanel tlp2 = new TableLayoutPanel();
 		int w, h;
@@ -164,17 +165,24 @@ namespace ShouldBeSolitaire
 			else
 			{
 				pb.Image = bmp;
-				pbArr[draggedFrom].Image = null;
+				if(amogus) pbArr[draggedFrom].Image = null;
 			}
 		}
+		//TODO: make game finish
 		private void MouseDownP(object sender, MouseEventArgs e)
 		{
 			PictureBox pb = sender as PictureBox;
-			bool amogus = int.TryParse(Convert.ToString(pb.Tag), out _);//if from puzzle to puzzle
+			amogus = int.TryParse(Convert.ToString(pb.Tag), out _);//if from puzzle to puzzle
 			if (pb.Tag != null && amogus) draggedFrom = (int)pb.Tag;
 			var img = pb.Image;
 			if (img == null) return;
-			if (ifWin == pb.Name) return;
+			Console.WriteLine(ifWin);
+			if (ifWin == pb.Name && !amogus)
+			{
+				//pb.AllowDrop = false;
+				//pb.MouseDown -= MouseDownP;
+				return;
+			}
 			if (DoDragDrop(img, DragDropEffects.Move) == DragDropEffects.Move)
 			{
 				if (!amogus)
